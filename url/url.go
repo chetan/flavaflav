@@ -46,12 +46,7 @@ func ExtractURL(text string) string {
 }
 
 func shortenURL(u string) (string, error) {
-	encodedURL := url.QueryEscape(u)
-	body, err := web.GetBody(fmt.Sprintf("http://tinyurl.com/api-create.php?url=%s", encodedURL))
-	if err != nil {
-		return "", err
-	}
-	return string(body), nil
+	return shortenURL99c(u)
 }
 
 func urlTitle(cmd *bot.PassiveCmd) (string, error) {
