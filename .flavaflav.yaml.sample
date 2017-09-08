@@ -1,0 +1,6 @@
+server: irc.choopa.net
+tls: false
+nick: 
+user: 
+channels:
+  - "#test"
