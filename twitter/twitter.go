@@ -1,6 +1,7 @@
 package twitter
 
 import (
+	"fmt"
 	"html"
 	"regexp"
 	"strings"
@@ -8,13 +9,14 @@ import (
 	uri "net/url"
 
 	"github.com/chetan/flavaflav/url"
+	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
 	"github.com/go-chat-bot/plugins/web"
 )
 
 var (
-	TweetRe   = regexp.MustCompile("https://(mobile\\.)?twitter.com/.*?/status/\\d+")
 	htmlTagRe = regexp.MustCompile("<.*?>")
+	handleRe  = regexp.MustCompile(`\((@.*?)\) (.*)`)
 )
 
 type Tweet struct {
@@ -28,9 +30,12 @@ type Tweet struct {
 	Height       int
 	Version      string
 
-	AuthorName string `json:"author_name"`
-	HTML       string
-	Text       string
+	AuthorName   string `json:"author_name"`
+	HTML         string
+	Text         string
+	TextBody     string
+	TextDate     string
+	AuthorHandle string
 }
 
 func init() {
@@ -39,6 +44,7 @@ func init() {
 		sniffTweet)
 }
 
+// replaceLast replaces the last occurence of the needle with the given string
 func replaceLast(str string, needle string, replace string) string {
 	i := strings.LastIndex(str, needle)
 	return str[0:i] + replace + str[i+len(needle):]
@@ -50,16 +56,27 @@ func fetchTweet(u string) (*Tweet, error) {
 	if err != nil {
 		return nil, err
 	}
+	processTweet(&tweet)
+	return &tweet, nil
+}
 
+func processTweet(tweet *Tweet) {
 	if tweet.HTML != "" {
 		tweet.Text = htmlTagRe.ReplaceAllString(tweet.HTML, "")
-		strings.LastIndex(tweet.Text, "&mdash;")
+
+		// extract body
+		i := strings.LastIndex(tweet.Text, "&mdash;")
+		tweet.TextBody = html.UnescapeString(strings.TrimSpace(tweet.Text[0:i]))
+
+		// extract handle
+		matches := handleRe.FindStringSubmatch(tweet.Text[i+7:])
+		tweet.AuthorHandle = matches[1]
+		tweet.TextDate = matches[2]
+
 		// tweet.Text = strings.Replace(tweet.Text, "&mdash;", " //", 1)
 		tweet.Text = replaceLast(tweet.Text, "&mdash;", " //")
 		tweet.Text = html.UnescapeString(tweet.Text)
 	}
-
-	return &tweet, nil
 }
 
 func sniffTweet(cmd *bot.PassiveCmd) (string, error) {
@@ -68,13 +85,13 @@ func sniffTweet(cmd *bot.PassiveCmd) (string, error) {
 		return "", nil
 	}
 
-	if TweetRe.MatchString(URL) {
+	if util.TweetRe.MatchString(URL) {
 		tweet, err := fetchTweet(URL)
 		if err != nil {
 			return "", err
 		}
 
-		return "t> " + tweet.Text, nil
+		return fmt.Sprintf("<%s> %s // %s", tweet.AuthorHandle, tweet.TextBody, tweet.TextDate), nil
 	}
 
 	return "", nil
