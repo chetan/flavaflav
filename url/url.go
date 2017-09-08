@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
 	"github.com/go-chat-bot/plugins/web"
 )
@@ -55,7 +56,8 @@ func shortenURL(u string) (string, error) {
 
 func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	URL := ExtractURL(cmd.Raw)
-	if URL == "" {
+	if URL == "" || util.TweetRe.MatchString(URL) {
+		// ignore tweets
 		return "", nil
 	}
 
