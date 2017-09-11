@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"github.com/go-chat-bot/bot/irc"
 	_ "github.com/go-chat-bot/plugins/catgif"
 	_ "github.com/go-chat-bot/plugins/chucknorris"
 	// _ "github.com/go-chat-bot/plugins/url"
-	"github.com/spf13/viper"
 
+	_ "github.com/chetan/flavaflav/instagram"
 	_ "github.com/chetan/flavaflav/twitter"
 	_ "github.com/chetan/flavaflav/url"
 

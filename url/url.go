@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	re = regexp.MustCompile("<title>\\n*?(.*?)\\n*?<\\/title>")
+	re = regexp.MustCompile("<title( .*?)?>\\n*?(.*?)\\n*?<\\/title>")
 )
 
 func canBeURLWithoutProtocol(text string) bool {
@@ -51,10 +51,11 @@ func shortenURL(u string) (string, error) {
 
 func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	URL := ExtractURL(cmd.Raw)
-	if URL == "" || util.TweetRe.MatchString(URL) {
-		// ignore tweets
+	if URL == "" || util.TweetRe.MatchString(URL) || util.InstagramRe.MatchString(URL) {
+		// ignore tweets and instagram posts
 		return "", nil
 	}
+	fmt.Printf("URL:'%s'\n", URL)
 
 	body, err := web.GetBody(URL)
 	if err != nil {
