@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-chat-bot/bot"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShortenURL(t *testing.T) {
@@ -23,9 +24,7 @@ func TestFetchTitleExtraAttrs(t *testing.T) {
 
 	cmd := bot.PassiveCmd{Raw: u}
 	res, err := urlTitle(&cmd)
-	if err != nil {
-		fmt.Println(err)
-	}
+	assert.NoError(t, err)
 
 	fmt.Println("res:", res)
 	if res != `[ https://99c.org/gEI ] Jeff Piotrowski: "Hurricane Irma eye wall. #flwx #hutticaneIrma"` {

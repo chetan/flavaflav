@@ -2,6 +2,7 @@ package instagram
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Vorkytaka/instagram-go-scraper/instagram"
@@ -37,7 +38,12 @@ func handleInstagram(cmd *bot.PassiveCmd) (string, error) {
 		}
 
 		t := time.Unix(int64(insta.Date), 0)
-		return fmt.Sprintf("<%s> %s // %s", insta.Owner.Username, insta.Caption, t.String()), nil
+		caption := insta.Caption
+		lines := strings.Split(caption, "\n")
+		if len(lines) > 1 {
+			caption = lines[0] + " ..."
+		}
+		return fmt.Sprintf("<%s> %s // %s", insta.Owner.Username, caption, t.String()), nil
 	}
 
 	return "", nil
