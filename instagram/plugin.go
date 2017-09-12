@@ -26,6 +26,11 @@ func fetchInsta(u string) (*instagram.Media, error) {
 }
 
 func handleInstagram(cmd *bot.PassiveCmd) (string, error) {
+
+	if util.IgnoreCmd(cmd) {
+		return "", nil
+	}
+
 	URL := url.ExtractURL(cmd.Raw)
 	if URL == "" {
 		return "", nil

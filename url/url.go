@@ -50,6 +50,11 @@ func shortenURL(u string) (string, error) {
 }
 
 func urlTitle(cmd *bot.PassiveCmd) (string, error) {
+
+	if util.IgnoreCmd(cmd) {
+		return "", nil
+	}
+
 	URL := ExtractURL(cmd.Raw)
 	if URL == "" || util.TweetRe.MatchString(URL) || util.InstagramRe.MatchString(URL) {
 		// ignore tweets and instagram posts

@@ -41,7 +41,7 @@ type Tweet struct {
 func init() {
 	bot.RegisterPassiveCommand(
 		"twitter",
-		sniffTweet)
+		handleTweet)
 }
 
 // replaceLast replaces the last occurence of the needle with the given string
@@ -79,7 +79,12 @@ func processTweet(tweet *Tweet) {
 	}
 }
 
-func sniffTweet(cmd *bot.PassiveCmd) (string, error) {
+func handleTweet(cmd *bot.PassiveCmd) (string, error) {
+
+	if util.IgnoreCmd(cmd) {
+		return "", nil
+	}
+
 	URL := url.ExtractURL(cmd.Raw)
 	if URL == "" {
 		return "", nil

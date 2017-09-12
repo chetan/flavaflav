@@ -14,6 +14,7 @@ import (
 	_ "github.com/chetan/flavaflav/instagram"
 	_ "github.com/chetan/flavaflav/twitter"
 	_ "github.com/chetan/flavaflav/url"
+	"github.com/chetan/flavaflav/util"
 
 	"os"
 )
@@ -36,18 +37,17 @@ func main() {
 
 	initConfig()
 
+	util.IgnoreNicks = viper.GetStringSlice("ignore_nicks")
+	util.IgnorePatterns = viper.GetStringSlice("ignore_patterns")
+
 	server := viper.GetString("server")
 	if !strings.Contains(server, ":") {
 		server += ":6667" // append default port
 	}
 
-	var channels []string
-	channels = viper.GetStringSlice("channels")
-	// channels = strings.Split(os.Getenv("IRC_CHANNELS"), ",")
-
 	cfg := &irc.Config{
 		Server:   server,
-		Channels: channels,
+		Channels: viper.GetStringSlice("channels"),
 		User:     viper.GetString("nick"), // yes, these are backwards!
 		Nick:     viper.GetString("user"),
 		Password: viper.GetString("password"),
