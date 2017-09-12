@@ -4,3 +4,9 @@ nick:
 user: 
 channels:
   - "#test"
+ignore_nicks:
+  - "foobar"
+ignore_patterns:
+  - "*!~foobar@*"
+btc_channels:
+  - "#test"
