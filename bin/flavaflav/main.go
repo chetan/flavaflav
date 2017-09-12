@@ -11,6 +11,7 @@ import (
 	_ "github.com/go-chat-bot/plugins/chucknorris"
 	// _ "github.com/go-chat-bot/plugins/url"
 
+	"github.com/chetan/flavaflav/btc"
 	_ "github.com/chetan/flavaflav/instagram"
 	_ "github.com/chetan/flavaflav/twitter"
 	_ "github.com/chetan/flavaflav/url"
@@ -39,6 +40,11 @@ func main() {
 
 	util.IgnoreNicks = viper.GetStringSlice("ignore_nicks")
 	util.IgnorePatterns = viper.GetStringSlice("ignore_patterns")
+
+	btcChannels := viper.GetStringSlice("btc_channels")
+	if len(btcChannels) > 0 {
+		btc.SetChannels(btcChannels)
+	}
 
 	server := viper.GetString("server")
 	if !strings.Contains(server, ":") {
