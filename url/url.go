@@ -62,6 +62,21 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	}
 	fmt.Printf("URL:'%s'\n", URL)
 
+	// shorten URL in goroutine
+	shortChan := make(chan string)
+	go func() {
+		if len(URL) >= 40 {
+			s, err := shortenURL(URL)
+			if err == nil {
+				shortChan <- s
+			} else {
+				shortChan <- ""
+			}
+		} else {
+			shortChan <- ""
+		}
+	}()
+
 	body, err := web.GetBody(URL)
 	if err != nil {
 		return "", err
@@ -78,15 +93,12 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 
 	var msg string
 
-	if len(URL) >= 40 {
-		// shorten URLs longer than 40
-		shortURL, err := shortenURL(URL)
-		if err == nil {
-			msg = fmt.Sprintf("[ %s ] ", shortURL)
-		}
+	shortURL := <-shortChan
+	if shortURL != "" {
+		msg = fmt.Sprintf("[ %s ] ", shortURL)
 	}
 
-	msg = fmt.Sprintf("%s%s", msg, title)
+	msg += title
 
 	return msg, nil
 }
