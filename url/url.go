@@ -3,6 +3,7 @@ package url
 import (
 	"fmt"
 	"html"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -77,19 +78,39 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 		}
 	}()
 
-	body, err := web.GetBody(URL)
+	res, err := http.Head(URL)
 	if err != nil {
 		return "", err
 	}
 
-	title := re.FindString(string(body))
-	if title == "" {
+	var title string
+	if res.Header["Content-Type"] == nil {
 		return "", nil
 	}
 
-	title = strings.Replace(title, "\n", "", -1)
-	title = title[strings.Index(title, ">")+1 : strings.LastIndex(title, "<")]
-	title = strings.TrimSpace(html.UnescapeString(title))
+	if strings.Contains(res.Header["Content-Type"][0], "html") {
+		// only fetch body+title for html resources
+		body, err := web.GetBody(URL)
+		if err != nil {
+			return "", err
+		}
+
+		title = re.FindString(string(body))
+		if title == "" {
+			return "", nil
+		}
+
+		title = strings.Replace(title, "\n", "", -1)
+		title = title[strings.Index(title, ">")+1 : strings.LastIndex(title, "<")]
+		title = strings.TrimSpace(html.UnescapeString(title))
+
+	} else {
+		length := ""
+		if res.Header["Content-Length"] != nil {
+			length = res.Header["Content-Length"][0]
+		}
+		title = fmt.Sprintf("%s; Content-Length: %s", res.Header["Content-Type"][0], length)
+	}
 
 	var msg string
 

@@ -32,3 +32,17 @@ func TestFetchTitleExtraAttrs(t *testing.T) {
 	}
 
 }
+
+func TestSkipTitleForLargeFiles(t *testing.T) {
+	u := "http://mirror.math.princeton.edu/pub/ubuntu-iso/17.10/ubuntu-17.10-beta2-desktop-amd64.iso"
+
+	cmd := bot.PassiveCmd{Raw: u}
+	res, err := urlTitle(&cmd)
+	assert.NoError(t, err)
+
+	fmt.Println("res:", res)
+	if res != `[ https://99c.org/gFI ] application/octet-stream; Content-Length: 1488797696` {
+		t.Fail()
+	}
+
+}
