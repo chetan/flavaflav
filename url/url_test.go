@@ -41,7 +41,7 @@ func TestSkipTitleForLargeFiles(t *testing.T) {
 	assert.NoError(t, err)
 
 	fmt.Println("res:", res)
-	if res != `[ https://99c.org/gFI ] application/octet-stream; Content-Length: 1488797696` {
+	if res != `[ https://99c.org/gFI ] application/octet-stream; Content-Length: 1.4G` {
 		t.Fail()
 	}
 

@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
+
+	"code.cloudfoundry.org/bytefmt"
 
 	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
@@ -108,6 +111,12 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 		length := ""
 		if res.Header["Content-Length"] != nil {
 			length = res.Header["Content-Length"][0]
+			if length != "" {
+				i, err := strconv.ParseUint(length, 10, 64)
+				if err == nil {
+					length = bytefmt.ByteSize(i)
+				}
+			}
 		}
 		title = fmt.Sprintf("%s; Content-Length: %s", res.Header["Content-Type"][0], length)
 	}
