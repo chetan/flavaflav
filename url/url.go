@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	re = regexp.MustCompile("<title( .*?)?>\\n*?(.*?)\\n*?<\\/title>")
+	titleRe = regexp.MustCompile(`<title( .*?)?>\n*?(.*?)\n*?<\\?/title>`)
 )
 
 func shortenURL(u string) (string, error) {
@@ -62,20 +62,10 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	}
 
 	if strings.Contains(res.Header["Content-Type"][0], "html") {
-		// only fetch body+title for html resources
-		body, err := web.GetBody(URL)
+		title, err = extractTitle(URL)
 		if err != nil {
 			return "", err
 		}
-
-		title = re.FindString(string(body))
-		if title == "" {
-			return "", nil
-		}
-
-		title = strings.Replace(title, "\n", "", -1)
-		title = title[strings.Index(title, ">")+1 : strings.LastIndex(title, "<")]
-		title = strings.TrimSpace(html.UnescapeString(title))
 
 	} else {
 		length := ""
@@ -101,6 +91,32 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	msg += title
 
 	return msg, nil
+}
+
+func extractTitle(url string) (string, error) {
+	// only fetch body+title for html resources
+	body, err := web.GetBody(url)
+	if err != nil {
+		return "", err
+	}
+
+	var title string
+	titles := titleRe.FindAllString(string(body), -1)
+	fmt.Println("num titles: ", len(titles))
+	fmt.Println(titles)
+
+	if len(titles) > 0 {
+		title = titles[len(titles)-1]
+	}
+
+	if title == "" {
+		return "", nil
+	}
+
+	title = strings.Replace(title, "\n", "", -1)
+	title = title[strings.Index(title, ">")+1 : strings.LastIndex(title, "<")]
+	title = strings.TrimSpace(html.UnescapeString(title))
+	return title, nil
 }
 
 func init() {

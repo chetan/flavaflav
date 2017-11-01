@@ -35,3 +35,20 @@ func TestSkipTitleForLargeFiles(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, `[ https://99c.org/gL6 ] application/octet-stream; Content-Length: 1.4G`, res)
 }
+
+func TestExtractTitle(t *testing.T) {
+	u := "https://www.bloomberg.com/news/features/2017-10-31/the-canadian-ghost-town-that-tesla-is-bringing-back-to-life?cmpid=socialflow-twitter-business"
+	title, err := extractTitle(u)
+	assert.NoError(t, err)
+	assert.Equal(t, `The Canadian Ghost Town That Tesla Is Bringing Back to Life - Bloomberg`, title)
+
+}
+
+func TestJalopnikTitle(t *testing.T) {
+	u := "https://blackflag.jalopnik.com/what-108-years-of-repaving-looks-like-under-indianapoli-1820048121"
+
+	cmd := bot.PassiveCmd{Raw: u}
+	res, err := urlTitle(&cmd)
+	assert.NoError(t, err)
+	assert.Equal(t, `[ https://99c.org/gL5 ] What 108 Years Of Repaving Looks Like Under Indianapolis Motor Speedway's Asphalt`, res)
+}
