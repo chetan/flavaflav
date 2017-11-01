@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/spf13/viper"
 
@@ -68,6 +70,18 @@ func main() {
 
 	fmt.Println("Running with config:", cfg)
 
+	trap()
+
 	irc.Run(cfg)
 
+}
+
+func trap() {
+	sigs := make(chan os.Signal, 1)
+	go func() {
+		s := <-sigs // blocks until signal received
+		fmt.Println("Caught signal: ", s)
+		os.Exit(0)
+	}()
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGQUIT)
 }

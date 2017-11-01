@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Vorkytaka/instagram-go-scraper/instagram"
-	"github.com/chetan/flavaflav/url"
 	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
 )
@@ -31,7 +30,7 @@ func handleInstagram(cmd *bot.PassiveCmd) (string, error) {
 		return "", nil
 	}
 
-	URL := url.ExtractURL(cmd.Raw)
+	URL := util.ExtractURL(cmd.Raw)
 	if URL == "" {
 		return "", nil
 	}

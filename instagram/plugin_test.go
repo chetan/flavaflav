@@ -22,7 +22,7 @@ func TestFetchInstagram(t *testing.T) {
 
 func TestHandleInstagram(t *testing.T) {
 
-	u := "https://www.instagram.com/p/BVkpNCiDIn4/?taken-by=rebeccablikes"
+	u := "blahblah https://www.instagram.com/p/BVkpNCiDIn4/?taken-by=rebeccablikes"
 	cmd := bot.PassiveCmd{Raw: u}
 	res, err := handleInstagram(&cmd)
 	assert.NoError(t, err)

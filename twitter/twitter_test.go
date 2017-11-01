@@ -3,8 +3,11 @@ package twitter
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/go-chat-bot/bot"
+	"github.com/stretchr/testify/assert"
 	yaml "gopkg.in/yaml.v1"
 )
 
@@ -48,4 +51,20 @@ func TestProcessing(t *testing.T) {
 
 	println(fmt.Sprintf("<%s> %s // %s", tweet.AuthorHandle, tweet.TextBody, tweet.TextDate))
 
+}
+
+func TestFetchEmbeddedTweets(t *testing.T) {
+	t.SkipNow()
+
+	raw := fmt.Sprintf("blah %s blah", "https://twitter.com/DonCheadle/status/918035863384178688")
+
+	cmd := bot.PassiveCmd{Raw: raw}
+	res, err := handleTweet(&cmd)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	fmt.Println(res)
+
+	lines := strings.Split(res, "\n")
+	assert.Len(t, lines, 2)
+	// assert.FailNow(t, "bye")
 }

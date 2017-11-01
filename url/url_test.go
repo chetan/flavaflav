@@ -1,7 +1,6 @@
 package url
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-chat-bot/bot"
@@ -25,24 +24,14 @@ func TestFetchTitleExtraAttrs(t *testing.T) {
 	cmd := bot.PassiveCmd{Raw: u}
 	res, err := urlTitle(&cmd)
 	assert.NoError(t, err)
-
-	fmt.Println("res:", res)
-	if res != `[ https://99c.org/gEI ] Jeff Piotrowski: "Hurricane Irma eye wall. #flwx #hutticaneIrma"` {
-		t.Fail()
-	}
-
+	assert.Equal(t, `[ https://99c.org/gEI ] Jeff Piotrowski: "Hurricane Irma eye wall. #flwx #hutticaneIrma"`, res)
 }
 
 func TestSkipTitleForLargeFiles(t *testing.T) {
-	u := "http://mirror.math.princeton.edu/pub/ubuntu-iso/17.10/ubuntu-17.10-beta2-desktop-amd64.iso"
+	u := "http://mirror.math.princeton.edu/pub/ubuntu-iso/17.10/ubuntu-17.10-desktop-amd64.iso"
 
 	cmd := bot.PassiveCmd{Raw: u}
 	res, err := urlTitle(&cmd)
 	assert.NoError(t, err)
-
-	fmt.Println("res:", res)
-	if res != `[ https://99c.org/gFI ] application/octet-stream; Content-Length: 1.4G` {
-		t.Fail()
-	}
-
+	assert.Equal(t, `[ https://99c.org/gL6 ] application/octet-stream; Content-Length: 1.4G`, res)
 }

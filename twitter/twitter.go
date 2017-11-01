@@ -8,7 +8,6 @@ import (
 
 	uri "net/url"
 
-	"github.com/chetan/flavaflav/url"
 	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
 	"github.com/go-chat-bot/plugins/web"
@@ -36,6 +35,10 @@ type Tweet struct {
 	TextBody     string
 	TextDate     string
 	AuthorHandle string
+}
+
+func (t Tweet) String() string {
+	return fmt.Sprintf("<%s> %s // %s", t.AuthorHandle, t.TextBody, t.TextDate)
 }
 
 func init() {
@@ -80,24 +83,69 @@ func processTweet(tweet *Tweet) {
 }
 
 func handleTweet(cmd *bot.PassiveCmd) (string, error) {
-
 	if util.IgnoreCmd(cmd) {
 		return "", nil
 	}
 
-	URL := url.ExtractURL(cmd.Raw)
+	URL := util.ExtractURL(cmd.Raw)
 	if URL == "" {
 		return "", nil
 	}
 
-	if util.TweetRe.MatchString(URL) {
+	if util.IsTwitter(URL) {
 		tweet, err := fetchTweet(URL)
 		if err != nil {
 			return "", err
 		}
 
-		return fmt.Sprintf("<%s> %s // %s", tweet.AuthorHandle, tweet.TextBody, tweet.TextDate), nil
+		out := tweet.String()
+
+		/* // skip embedded stuff for now
+		out := Gray(tweet.String())
+		embeddedURLs := util.ExtractURLs(tweet.TextBody)
+		for _, u := range embeddedURLs {
+			fmt.Println(u)
+			if util.IsTwitterShortURL(u) {
+				expanded, err := util.ExpandURL(u)
+				if err == nil && expanded != "" && util.IsTwitter(expanded) {
+					t, err := fetchTweet(expanded)
+					if err == nil {
+						out += "\n" + Gray(" \\--- "+t.String())
+					}
+				}
+			}
+		}
+		*/
+
+		return out, nil
 	}
 
 	return "", nil
+}
+
+const (
+	WHITE = iota
+	BLACK
+	NAVY
+	GREEN
+	RED
+	MAROON
+	PURPLE
+	OLIVE
+	YELLOW
+	LIGHTGREEN
+	TEAL
+	CYAN
+	ROYALBLUE
+	MAGENTA
+	GRAY
+	LIGHTGRAY
+)
+
+func Color(s string, c int) string {
+	return fmt.Sprintf("\x03%d%s\x03", c, s)
+}
+
+func Gray(s string) string {
+	return Color(s, GRAY)
 }

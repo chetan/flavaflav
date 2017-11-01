@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,38 +15,9 @@ import (
 	"github.com/go-chat-bot/plugins/web"
 )
 
-const (
-	minDomainLength = 3
-)
-
 var (
 	re = regexp.MustCompile("<title( .*?)?>\\n*?(.*?)\\n*?<\\/title>")
 )
-
-func canBeURLWithoutProtocol(text string) bool {
-	return len(text) > minDomainLength &&
-		!strings.HasPrefix(text, "http") &&
-		strings.Contains(text, ".")
-}
-
-func ExtractURL(text string) string {
-	extractedURL := ""
-	for _, value := range strings.Split(text, " ") {
-		if canBeURLWithoutProtocol(value) {
-			value = "http://" + value
-		}
-
-		parsedURL, err := url.Parse(value)
-		if err != nil {
-			continue
-		}
-		if strings.HasPrefix(parsedURL.Scheme, "http") {
-			extractedURL = parsedURL.String()
-			break
-		}
-	}
-	return extractedURL
-}
 
 func shortenURL(u string) (string, error) {
 	return shortenURL99c(u)
@@ -59,7 +29,7 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 		return "", nil
 	}
 
-	URL := ExtractURL(cmd.Raw)
+	URL := util.ExtractURL(cmd.Raw)
 	if URL == "" || util.TweetRe.MatchString(URL) || util.InstagramRe.MatchString(URL) {
 		// ignore tweets and instagram posts
 		return "", nil
