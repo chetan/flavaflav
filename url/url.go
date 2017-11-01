@@ -101,9 +101,11 @@ func extractTitle(url string) (string, error) {
 	}
 
 	var title string
+
+	// workaround for jalopnik.com properties - they return a whole mess of JS
+	// with embedded HTML on a single line before the actual <title> tag. The real
+	// <title> is the last such match.
 	titles := titleRe.FindAllString(string(body), -1)
-	fmt.Println("num titles: ", len(titles))
-	fmt.Println(titles)
 
 	if len(titles) > 0 {
 		title = titles[len(titles)-1]
