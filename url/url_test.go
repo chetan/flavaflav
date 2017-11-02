@@ -38,17 +38,25 @@ func TestSkipTitleForLargeFiles(t *testing.T) {
 
 func TestExtractTitle(t *testing.T) {
 	u := "https://www.bloomberg.com/news/features/2017-10-31/the-canadian-ghost-town-that-tesla-is-bringing-back-to-life?cmpid=socialflow-twitter-business"
-	title, err := extractTitle(u)
-	assert.NoError(t, err)
-	assert.Equal(t, `The Canadian Ghost Town That Tesla Is Bringing Back to Life - Bloomberg`, title)
-
+	ti := `[ https://99c.org/gLh ] The Canadian Ghost Town That Tesla Is Bringing Back to Life - Bloomberg`
+	testUrl(t, u, ti)
 }
 
 func TestJalopnikTitle(t *testing.T) {
 	u := "https://blackflag.jalopnik.com/what-108-years-of-repaving-looks-like-under-indianapoli-1820048121"
+	ti := `[ https://99c.org/gL5 ] What 108 Years Of Repaving Looks Like Under Indianapolis Motor Speedway's Asphalt`
+	testUrl(t, u, ti)
+}
 
-	cmd := bot.PassiveCmd{Raw: u}
-	res, err := urlTitle(&cmd)
+func TestAPTitle(t *testing.T) {
+	u := "https://apnews.com/9a605019eeba4ad2934741091105de42"
+	ti := `[ https://99c.org/gLg ] APNewsBreak: Gov't won't pursue talking car mandate`
+	testUrl(t, u, ti)
+}
+
+func testUrl(t *testing.T, url string, expectedTitle string) {
+	cmd := bot.PassiveCmd{Raw: url}
+	title, err := urlTitle(&cmd)
 	assert.NoError(t, err)
-	assert.Equal(t, `[ https://99c.org/gL5 ] What 108 Years Of Repaving Looks Like Under Indianapolis Motor Speedway's Asphalt`, res)
+	assert.Equal(t, expectedTitle, title)
 }

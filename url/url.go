@@ -51,7 +51,13 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 		}
 	}()
 
-	res, err := http.Head(URL)
+	// send a HEAD request first to grab content-type & length headers
+	req, err := http.NewRequest("HEAD", URL, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
