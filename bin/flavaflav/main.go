@@ -6,6 +6,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/chetan/flavaflav/trumpykins"
+
 	"github.com/spf13/viper"
 
 	"github.com/go-chat-bot/bot/irc"
@@ -43,9 +45,22 @@ func main() {
 	util.IgnoreNicks = viper.GetStringSlice("ignore_nicks")
 	util.IgnorePatterns = viper.GetStringSlice("ignore_patterns")
 
+	// btc plugin
 	btcChannels := viper.GetStringSlice("btc_channels")
 	if len(btcChannels) > 0 {
+		fmt.Println("enabling btc monitor")
 		btc.SetChannels(btcChannels)
+	}
+
+	// trumpykins plugin
+	twitterKey := viper.GetString("twitter_key")
+	twitterSecret := viper.GetString("twitter_secret")
+	twitterAccessToken := viper.GetString("twitter_access_token")
+	twitterAccessSecret := viper.GetString("twitter_access_secret")
+	trumpChannels := viper.GetStringSlice("trump_channels")
+	if twitterKey != "" && twitterSecret != "" && len(trumpChannels) > 0 {
+		fmt.Println("enabling trumpykins stream")
+		trumpykins.Enable(twitterKey, twitterSecret, twitterAccessToken, twitterAccessSecret, trumpChannels)
 	}
 
 	server := viper.GetString("server")
