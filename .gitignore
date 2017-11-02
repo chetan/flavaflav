@@ -1,2 +1,3 @@
 *.tag*
 *.yaml
+.vscode
