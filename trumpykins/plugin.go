@@ -9,6 +9,8 @@ import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/go-chat-bot/bot"
+
+	twitter_plugin "github.com/chetan/flavaflav/twitter"
 )
 
 var (
@@ -39,11 +41,21 @@ func Enable(consumerKey string, consumerSecret string, accessToken string, acces
 		if tweet.User.ID != twitterID {
 			return // ignore
 		}
-		twit := formatTweet(tweet)
+		tweetURL := fmt.Sprintf("https://twitter.com/%s/status/%s", tweet.User.ScreenName, tweet.IDStr)
+		fmt.Println(tweetURL)
+		// twit := formatTweet(tweet)
+		fullTweet, err := twitter_plugin.FetchTweet(tweetURL)
+		if err != nil {
+			fmt.Println("error fetching full tweet: ", err)
+			return
+		}
+		twit := fullTweet.String()
+
 		fmt.Println(twit)
+
+		// add new tweet to our buffer
 		mtx.Lock()
 		defer mtx.Unlock()
-		// add new tweet to our buffer
 		pendingTweets = append(pendingTweets, twit)
 	}
 
@@ -62,6 +74,7 @@ func Enable(consumerKey string, consumerSecret string, accessToken string, acces
 
 func formatTweet(tweet *twitter.Tweet) string {
 	ts, _ := tweet.CreatedAtTime()
+	// var text string
 	return fmt.Sprintf("<@%s> %s // %s", tweet.User.ScreenName, tweet.Text, ts.Format(time.UnixDate))
 }
 

@@ -53,7 +53,7 @@ func replaceLast(str string, needle string, replace string) string {
 	return str[0:i] + replace + str[i+len(needle):]
 }
 
-func fetchTweet(u string) (*Tweet, error) {
+func FetchTweet(u string) (*Tweet, error) {
 	tweet := Tweet{}
 	err := web.GetJSON("https://publish.twitter.com/oembed?url="+uri.QueryEscape(u), &tweet)
 	if err != nil {
@@ -93,7 +93,7 @@ func handleTweet(cmd *bot.PassiveCmd) (string, error) {
 	}
 
 	if util.IsTwitter(URL) {
-		tweet, err := fetchTweet(URL)
+		tweet, err := FetchTweet(URL)
 		if err != nil {
 			return "", err
 		}

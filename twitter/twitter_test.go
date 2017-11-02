@@ -13,7 +13,7 @@ import (
 
 func TestFetchTweet(t *testing.T) {
 
-	tweet, err := fetchTweet("https://mobile.twitter.com/realDonaldTrump/status/905958330815926276")
+	tweet, err := FetchTweet("https://mobile.twitter.com/realDonaldTrump/status/905958330815926276")
 	if err != nil {
 		t.Fail()
 	}
