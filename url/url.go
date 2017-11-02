@@ -114,7 +114,13 @@ func extractTitle(url string) (string, error) {
 	titles := titleRe.FindAllString(string(body), -1)
 
 	if len(titles) > 0 {
-		title = titles[len(titles)-1]
+		if util.IsVox(url) {
+			// for vox, it's the first one, with JS crap following
+			title = titles[0]
+		} else {
+			// jalopnik crap the title comes at the end
+			title = titles[len(titles)-1]
+		}
 	}
 
 	if title == "" {

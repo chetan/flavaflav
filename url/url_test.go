@@ -54,6 +54,12 @@ func TestAPTitle(t *testing.T) {
 	testUrl(t, u, ti)
 }
 
+func TestVoxTitle(t *testing.T) {
+	u := "https://www.vox.com/science-and-health/2017/11/2/16594408/great-pyramid-giza-cosmic-rays-void-particle-physics-nature?utm_campaign=vox&utm_content=chorus&utm_medium=social&utm_source=twitter"
+	ti := `[ https://99c.org/gLc ] Great Pyramid: Scientists found a mysterious void inside using cosmic rays - Vox`
+	testUrl(t, u, ti)
+}
+
 func testUrl(t *testing.T, url string, expectedTitle string) {
 	cmd := bot.PassiveCmd{Raw: url}
 	title, err := urlTitle(&cmd)

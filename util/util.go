@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	VoxRe           = regexp.MustCompile(`^https?://(www.)?vox.com/`)
 	TweetRe         = regexp.MustCompile("https://(mobile\\.)?twitter.com/.*?/status/\\d+")
 	InstagramRe     = regexp.MustCompile(`^https://www.instagram.com/p/.*?/`)
 	TwitterShortUrl = regexp.MustCompile(`https://t\.co/.*`)
@@ -57,6 +58,10 @@ func userMatchesPattern(user *bot.User, p string) (match bool) {
 
 	str := fmt.Sprintf("%s!%s@%s", user.Nick, user.RealName, user.ID)
 	return glob.Glob(p, str)
+}
+
+func IsVox(u string) bool {
+	return VoxRe.MatchString(u)
 }
 
 func IsTwitter(u string) bool {
