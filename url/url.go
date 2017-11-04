@@ -108,19 +108,17 @@ func extractTitle(url string) (string, error) {
 
 	var title string
 
-	// workaround for jalopnik.com properties - they return a whole mess of JS
+	// workaround for kinja.com properties - they return a whole mess of JS
 	// with embedded HTML on a single line before the actual <title> tag. The real
 	// <title> is the last such match.
-	titles := titleRe.FindAllString(string(body), -1)
-
-	if len(titles) > 0 {
-		if util.IsVox(url) {
-			// for vox, it's the first one, with JS crap following
-			title = titles[0]
-		} else {
-			// jalopnik crap the title comes at the end
+	if util.IsKinjaNetwork(url) {
+		titles := titleRe.FindAllString(string(body), -1)
+		if len(titles) > 0 {
+			// title comes at the end
 			title = titles[len(titles)-1]
 		}
+	} else {
+		title = titleRe.FindString(string(body))
 	}
 
 	if title == "" {

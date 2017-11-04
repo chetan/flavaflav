@@ -16,6 +16,9 @@ var (
 	TweetRe         = regexp.MustCompile("https://(mobile\\.)?twitter.com/.*?/status/\\d+")
 	InstagramRe     = regexp.MustCompile(`^https://www.instagram.com/p/.*?/`)
 	TwitterShortUrl = regexp.MustCompile(`https://t\.co/.*`)
+	KinjaRe         = regexp.MustCompile(strings.TrimSpace(`
+^https?://((.*?)\.)?(kotaku.com|lifehacker.com|splinternews.com|earther.com|deadspin.com|gizmodo.com|jalopnik.com|jezebel.com|theroot.com|kinja.com|theonion.com|avclub.com)
+`))
 )
 
 const (
@@ -58,6 +61,10 @@ func userMatchesPattern(user *bot.User, p string) (match bool) {
 
 	str := fmt.Sprintf("%s!%s@%s", user.Nick, user.RealName, user.ID)
 	return glob.Glob(p, str)
+}
+
+func IsKinjaNetwork(u string) bool {
+	return KinjaRe.MatchString(u)
 }
 
 func IsVox(u string) bool {
