@@ -8,7 +8,7 @@ import (
 )
 
 func TestShortenURL(t *testing.T) {
-	s, err := shortenURL("http://yahoo.com")
+	s, err := ShortenURL("http://yahoo.com")
 	if err != nil {
 		t.Fail()
 	}

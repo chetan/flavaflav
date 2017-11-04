@@ -19,7 +19,7 @@ var (
 	titleRe = regexp.MustCompile(`<title( .*?)?>\n*?(.*?)\n*?<\\?/title>`)
 )
 
-func shortenURL(u string) (string, error) {
+func ShortenURL(u string) (string, error) {
 	return shortenURL99c(u)
 }
 
@@ -40,7 +40,7 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	shortChan := make(chan string)
 	go func() {
 		if len(URL) >= 40 {
-			s, err := shortenURL(URL)
+			s, err := ShortenURL(URL)
 			if err == nil {
 				shortChan <- s
 			} else {

@@ -11,6 +11,7 @@ import (
 	"github.com/go-chat-bot/bot"
 
 	twitter_plugin "github.com/chetan/flavaflav/twitter"
+	"github.com/chetan/flavaflav/url"
 )
 
 var (
@@ -50,6 +51,14 @@ func Enable(consumerKey string, consumerSecret string, accessToken string, acces
 			return
 		}
 		twit := fullTweet.String()
+
+		// append short url
+		shortURL, err := url.ShortenURL(tweetURL)
+		if err == nil {
+			twit += " // " + shortURL
+		} else {
+			twit += " // " + tweetURL // just use long one on err
+		}
 
 		fmt.Println(twit)
 
