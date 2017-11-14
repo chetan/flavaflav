@@ -10,7 +10,6 @@ import (
 
 	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
-	"github.com/go-chat-bot/plugins/web"
 )
 
 var (
@@ -55,7 +54,7 @@ func replaceLast(str string, needle string, replace string) string {
 
 func FetchTweet(u string) (*Tweet, error) {
 	tweet := Tweet{}
-	err := web.GetJSON("https://publish.twitter.com/oembed?url="+uri.QueryEscape(u), &tweet)
+	err := util.GetJSON("https://publish.twitter.com/oembed?url="+uri.QueryEscape(u), &tweet)
 	if err != nil {
 		return nil, err
 	}
@@ -121,31 +120,4 @@ func handleTweet(cmd *bot.PassiveCmd) (string, error) {
 	}
 
 	return "", nil
-}
-
-const (
-	WHITE = iota
-	BLACK
-	NAVY
-	GREEN
-	RED
-	MAROON
-	PURPLE
-	OLIVE
-	YELLOW
-	LIGHTGREEN
-	TEAL
-	CYAN
-	ROYALBLUE
-	MAGENTA
-	GRAY
-	LIGHTGRAY
-)
-
-func Color(s string, c int) string {
-	return fmt.Sprintf("\x03%d%s\x03", c, s)
-}
-
-func Gray(s string) string {
-	return Color(s, GRAY)
 }
