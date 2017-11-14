@@ -60,6 +60,12 @@ func TestVoxTitle(t *testing.T) {
 	testUrl(t, u, ti)
 }
 
+func TestRedditTitle(t *testing.T) {
+	u := "https://www.reddit.com/r/aws/comments/7cufe4/amazon_web_services_denies_reports_of_china_exit/"
+	ti := `[ https://99c.org/gOZ ] Amazon Web Services denies reports of China exit, confirms some asset sales : aws`
+	testUrl(t, u, ti)
+}
+
 func testUrl(t *testing.T, url string, expectedTitle string) {
 	cmd := bot.PassiveCmd{Raw: url}
 	title, err := urlTitle(&cmd)

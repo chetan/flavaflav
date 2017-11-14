@@ -1,7 +1,9 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -105,6 +107,11 @@ func canBeURLWithoutProtocol(text string) bool {
 		strings.Contains(text, ".")
 }
 
+func AddHeaders(req *http.Request) {
+	req.Header.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36")
+}
+
 func ExtractURLs(text string) []string {
 
 	var urls []string
@@ -132,4 +139,27 @@ func ExtractURL(text string) string {
 		return ""
 	}
 	return urls[0]
+}
+
+func GetBody(url string) ([]byte, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	AddHeaders(req)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	return ioutil.ReadAll(res.Body)
+}
+
+func GetJSON(url string, v interface{}) error {
+	body, err := GetBody(url)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, v)
 }

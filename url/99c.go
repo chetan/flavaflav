@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/go-chat-bot/plugins/web"
+	"github.com/chetan/flavaflav/util"
 )
 
 type Response struct {
@@ -15,7 +15,7 @@ func shortenURL99c(u string) (string, error) {
 	res := Response{}
 
 	encodedURL := url.QueryEscape(u)
-	err := web.GetJSON("https://99c.org/botapi.php?action=shorturl&format=json&url="+encodedURL, &res)
+	err := util.GetJSON("https://99c.org/botapi.php?action=shorturl&format=json&url="+encodedURL, &res)
 	if err != nil {
 		return "", err
 	}

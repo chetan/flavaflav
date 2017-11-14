@@ -12,7 +12,6 @@ import (
 
 	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
-	"github.com/go-chat-bot/plugins/web"
 )
 
 var (
@@ -56,7 +55,7 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req.Header.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
+	util.AddHeaders(req)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
@@ -101,7 +100,7 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 
 func extractTitle(url string) (string, error) {
 	// only fetch body+title for html resources
-	body, err := web.GetBody(url)
+	body, err := util.GetBody(url)
 	if err != nil {
 		return "", err
 	}
