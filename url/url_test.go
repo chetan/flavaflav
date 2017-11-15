@@ -66,6 +66,12 @@ func TestRedditTitle(t *testing.T) {
 	testUrl(t, u, ti)
 }
 
+func TestYoutubeTitle(t *testing.T) {
+	u := "https://youtu.be/gkzTDkLH0ak"
+	ti := `Duterte sings for Trump: ‘You are the light’ - YouTube`
+	testUrl(t, u, ti)
+}
+
 func testUrl(t *testing.T, url string, expectedTitle string) {
 	cmd := bot.PassiveCmd{Raw: url}
 	title, err := urlTitle(&cmd)

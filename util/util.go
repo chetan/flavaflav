@@ -17,6 +17,7 @@ var (
 	VoxRe           = regexp.MustCompile(`^https?://(www.)?vox.com/`)
 	TweetRe         = regexp.MustCompile("https://(mobile\\.)?twitter.com/.*?/status/\\d+")
 	InstagramRe     = regexp.MustCompile(`^https://www.instagram.com/p/.*?/`)
+	YoutubeRe       = regexp.MustCompile(`^https://(www\.youtube\.com|youtu\.be)/`)
 	TwitterShortUrl = regexp.MustCompile(`https://t\.co/.*`)
 	KinjaRe         = regexp.MustCompile(strings.TrimSpace(`
 ^https?://((.*?)\.)?(kotaku.com|lifehacker.com|splinternews.com|earther.com|deadspin.com|gizmodo.com|jalopnik.com|jezebel.com|theroot.com|kinja.com|theonion.com|avclub.com)
@@ -85,6 +86,10 @@ func IsInstagram(u string) bool {
 	return InstagramRe.MatchString(u)
 }
 
+func IsYoutube(u string) bool {
+	return YoutubeRe.MatchString(u)
+}
+
 func ExpandURL(u string) (string, error) {
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -109,7 +114,10 @@ func canBeURLWithoutProtocol(text string) bool {
 
 func AddHeaders(req *http.Request) {
 	req.Header.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
-	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36")
+	if !IsYoutube(req.URL.String()) {
+		// youtube returns all JS for modern user agents..
+		req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36")
+	}
 }
 
 func ExtractURLs(text string) []string {
