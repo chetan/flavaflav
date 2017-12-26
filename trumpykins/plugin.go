@@ -14,16 +14,37 @@ import (
 	"github.com/chetan/flavaflav/url"
 )
 
+type config struct {
+	consumerKey    string
+	consumerSecret string
+	accessToken    string
+	accessSecret   string
+	channels       []string
+}
+
 var (
 	pendingTweets = []string{}
 	mtx           = sync.Mutex{}
+	pluginConfig  = &config{}
 )
 
 const twitterID = 25073877 // realDonaldTrump
 
 func Enable(consumerKey string, consumerSecret string, accessToken string, accessSecret string, channels []string) {
-	config := oauth1.NewConfig(consumerKey, consumerSecret)
-	token := oauth1.NewToken(accessToken, accessSecret)
+	pluginConfig = &config{consumerKey, consumerSecret, accessToken, accessSecret, channels}
+
+	cron := bot.PeriodicConfig{
+		CronSpec: "@every 1m",
+		Channels: channels,
+		CmdFunc:  postTrumpTweets,
+	}
+	bot.RegisterPeriodicCommand("trumpykins", cron)
+}
+
+func startPlugin() {
+	fmt.Println("starting trumpykins tracker")
+	config := oauth1.NewConfig(pluginConfig.consumerKey, pluginConfig.consumerSecret)
+	token := oauth1.NewToken(pluginConfig.accessToken, pluginConfig.accessSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 
@@ -69,16 +90,11 @@ func Enable(consumerKey string, consumerSecret string, accessToken string, acces
 	}
 
 	go func() {
+		defer stream.Stop()
 		demux.HandleChan(stream.Messages) // runs forever
-		fmt.Println("uh oh, demux exited the loop...")
+		fmt.Println("uh oh, demux exited the loop... restarting")
+		startPlugin()
 	}()
-
-	cron := bot.PeriodicConfig{
-		CronSpec: "@every 1m",
-		Channels: channels,
-		CmdFunc:  postTrumpTweets,
-	}
-	bot.RegisterPeriodicCommand("trumpykins", cron)
 }
 
 func formatTweet(tweet *twitter.Tweet) string {
