@@ -32,6 +32,7 @@ const twitterID = 25073877 // realDonaldTrump
 
 func Enable(consumerKey string, consumerSecret string, accessToken string, accessSecret string, channels []string) {
 	pluginConfig = &config{consumerKey, consumerSecret, accessToken, accessSecret, channels}
+	startPlugin()
 
 	cron := bot.PeriodicConfig{
 		CronSpec: "@every 1m",
