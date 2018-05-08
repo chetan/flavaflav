@@ -15,7 +15,7 @@ import (
 
 var (
 	VoxRe           = regexp.MustCompile(`^https?://(www.)?vox.com/`)
-	TweetRe         = regexp.MustCompile("https://(mobile\\.)?twitter.com/.*?/status/\\d+")
+	TweetRe         = regexp.MustCompile("https://(mobile\\.)?twitter.com/.*?/status/\\d+/?")
 	InstagramRe     = regexp.MustCompile(`^https://www.instagram.com/p/.*?/`)
 	YoutubeRe       = regexp.MustCompile(`^https://(www\.youtube\.com|youtu\.be)/`)
 	TwitterShortUrl = regexp.MustCompile(`https://t\.co/.*`)
