@@ -6,6 +6,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/chetan/flavaflav/bin/flavaflav/cloneit"
 	"github.com/chetan/flavaflav/trumpykins"
 
 	"github.com/spf13/viper"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-chat-bot/bot/irc"
 	_ "github.com/go-chat-bot/plugins/catgif"
 	_ "github.com/go-chat-bot/plugins/chucknorris"
+
 	// _ "github.com/go-chat-bot/plugins/url"
 
 	"github.com/chetan/flavaflav/btc"
@@ -61,6 +63,16 @@ func main() {
 	if twitterKey != "" && twitterSecret != "" && len(trumpChannels) > 0 {
 		fmt.Println("enabling trumpykins stream")
 		trumpykins.Enable(twitterKey, twitterSecret, twitterAccessToken, twitterAccessSecret, trumpChannels)
+	}
+
+	// cloneit plugin
+	rusername := viper.GetString("reddit_username")
+	rpassword := viper.GetString("reddit_password")
+	rsubreddit := viper.GetString("reddit_subreddit")
+	rchannel := viper.GetString("reddit_channel")
+	if rusername != "" && rpassword != "" && rsubreddit != "" {
+		fmt.Println("enabling cloneit plugin")
+		cloneit.Enable(rusername, rpassword, rsubreddit, rchannel)
 	}
 
 	server := viper.GetString("server")

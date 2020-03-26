@@ -10,6 +10,7 @@ import (
 
 	"code.cloudfoundry.org/bytefmt"
 
+	"github.com/chetan/flavaflav/bin/flavaflav/cloneit"
 	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
 )
@@ -92,6 +93,14 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	if shortURL != "" {
 		msg = fmt.Sprintf("[ %s ] ", shortURL)
 	}
+
+	// Send to cloneit
+	cloneit.AddLink(&cloneit.Link{
+		Url:     URL,
+		Title:   title,
+		Channel: cmd.Channel,
+		Author:  cmd.User.Nick,
+	})
 
 	msg += title
 
