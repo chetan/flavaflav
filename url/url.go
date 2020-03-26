@@ -30,7 +30,7 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	}
 
 	URL := util.ExtractURL(cmd.Raw)
-	if URL == "" || util.IsTwitter(URL) || util.IsInstagram(URL) || util.IsYoutube(URL) {
+	if URL == "" || util.IsTwitter(URL) || util.IsInstagram(URL) {
 		// ignore tweets and instagram posts
 		// ignore youtube due to other bot
 		return "", nil
@@ -102,6 +102,11 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 		Channel: cmd.Channel,
 		Author:  cmd.User.Nick,
 	})
+
+	if util.IsYoutube(URL) {
+		// skip youtube links but still post the URL to cloneit
+		return "", nil
+	}
 
 	msg += title
 
