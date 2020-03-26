@@ -30,8 +30,9 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	}
 
 	URL := util.ExtractURL(cmd.Raw)
-	if URL == "" || util.TweetRe.MatchString(URL) || util.InstagramRe.MatchString(URL) {
+	if URL == "" || util.IsTwitter(URL) || util.IsInstagram(URL) || util.IsYoutube(URL) {
 		// ignore tweets and instagram posts
+		// ignore youtube due to other bot
 		return "", nil
 	}
 	fmt.Printf("URL:'%s'\n", URL)
