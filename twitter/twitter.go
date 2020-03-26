@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/chetan/flavaflav/bin/flavaflav/cloneit"
+
 	uri "net/url"
 
 	"github.com/chetan/flavaflav/util"
@@ -96,6 +98,13 @@ func handleTweet(cmd *bot.PassiveCmd) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
+		cloneit.AddLink(&cloneit.Link{
+			Url:     URL,
+			Title:   tweet.TextBody,
+			Channel: cmd.Channel,
+			Author:  cmd.User.Nick,
+		})
 
 		out := tweet.String()
 
