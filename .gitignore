@@ -1,3 +1,4 @@
 *.tag*
 *.yaml
 .vscode
+.DS_Store

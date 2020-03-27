@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -14,8 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+var cleanNickRE = regexp.MustCompile(`[-_^]`)
+
 type config struct {
-	clientId     string
+	clientID     string
 	clientSecret string
 	username     string
 	password     string
@@ -47,8 +49,8 @@ func AddLink(link *Link) {
 }
 
 // Enable the plugin
-func Enable(clientId, clientSecret, user string, pass string, sub string, channel string) {
-	pluginConfig = &config{clientId, clientSecret, user, pass, sub, channel}
+func Enable(clientID, clientSecret, user string, pass string, sub string, channel string) {
+	pluginConfig = &config{clientID, clientSecret, user, pass, sub, channel}
 	sess, err := createSession()
 	if err != nil {
 		fmt.Println("cloneit: err creating initial session: ", err)
@@ -65,7 +67,7 @@ func createSession() (*geddit.OAuthSession, error) {
 	}
 
 	sess, err := geddit.NewOAuthSession(
-		pluginConfig.clientId,
+		pluginConfig.clientID,
 		pluginConfig.clientSecret,
 		"flavaflav v1",
 		"http://127.0.0.1/",
@@ -98,8 +100,11 @@ func postLink(link *Link) {
 		fmt.Println("too many errors, giving up submit")
 	}
 
+	// cleanup incoming
+	link.Author = cleanNick(link.Author)
+
 	// submit
-	submission, err := submit(link)
+	submission, err := submit(link, pluginConfig.subreddit)
 	if err != nil {
 		fmt.Println("error submitting: ", err)
 		return
@@ -144,20 +149,21 @@ func approve(submission *geddit.Submission) error {
 	return nil
 }
 
-func submit(link *Link) (*geddit.Submission, error) {
+// Strip punctuation from nicks
+func cleanNick(nick string) string {
+	return cleanNickRE.ReplaceAllString(nick, "")
+}
 
-	// canonical nick -> flair text
-	// flair := regexp.MustCompile(`[-_^]`).ReplaceAllString(link.Author, "")
-
+func submit(link *Link, subreddit string) (*geddit.Submission, error) {
 	// Build form for POST request.
 	v := url.Values{
 		"title":       {fmt.Sprintf("<%s> %s", link.Author, link.Title)},
 		"url":         {link.Url},
-		"sr":          {pluginConfig.subreddit},
-		"sendreplies": {strconv.FormatBool(false)},
-		"resubmit":    {strconv.FormatBool(false)},
+		"sr":          {subreddit},
+		"sendreplies": {"false"},
+		"resubmit":    {"false"},
 		"api_type":    {"json"},
-		// "flair_text":  {flair},
+		// "flair_text":  {link.Author},
 		"kind": {"link"},
 	}
 
