@@ -71,17 +71,17 @@ func postLink(link *reddit.Link) {
 	// cleanup incoming
 	link.Author = cleanNick(link.Author)
 
-	// submit
+	// submit and retry on auth failure
 	submission, err := reddit.Submit(link, pluginConfig.subreddit)
 	if err != nil {
-		fmt.Println("error submitting: ", err)
+		fmt.Println("[cloneit] error submitting: ", err)
 		return
 	}
 
 	// auto approve it
 	err = reddit.Approve(submission)
 	if err != nil {
-		fmt.Printf("failed to approve submission: %s\n%#v\n", err, submission)
+		fmt.Printf("[cloneit] failed to approve submission: %s\n%#v\n", err, submission)
 		return
 	}
 }

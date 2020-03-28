@@ -73,7 +73,7 @@ func Submit(link *Link, subreddit string) (*Submission, error) {
 	submit := &submission{}
 
 	body := strings.NewReader(v.Encode())
-	err := MakeApiReq("POST", "https://oauth.reddit.com/api/submit", body, submit)
+	err := MakeApiReqWithRetry("POST", "https://oauth.reddit.com/api/submit", body, submit)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func Approve(submission *Submission) error {
 	}
 
 	body := strings.NewReader(v.Encode())
-	err := MakeApiReq("POST", "https://oauth.reddit.com/api/approve", body, &generic{})
+	err := MakeApiReqWithRetry("POST", "https://oauth.reddit.com/api/approve", body, &generic{})
 	if err != nil {
 		return err
 	}

@@ -238,3 +238,33 @@ func MakeApiReq(method, urlstr string, body io.Reader, result interface{}) error
 	}
 	return nil
 }
+
+// MakeApiReqWithRetry automatically retries the given request *one* time
+func MakeApiReqWithRetry(method, urlstr string, body io.Reader, result interface{}) error {
+	err := MakeApiReq(method, urlstr, body, result)
+	if err == nil {
+		return nil
+	}
+
+	if strings.Contains(err.Error(), "401 Unauthorized") {
+		fmt.Println("[reddit] access token expired; trying to refresh")
+		err = RefreshCreds()
+		if err != nil {
+			fmt.Println("[reddit] failed to refresh creds:", err)
+			// can't refresh, then give up
+			return err
+		}
+		// successful refresh, try again
+		fmt.Println("[reddit] refresh successful, trying request again")
+		err := MakeApiReq(method, urlstr, body, result)
+		if err != nil {
+			fmt.Println("[reddit] request still failed:", err)
+			return err
+		}
+		fmt.Println("[reddit] request succeeded after refresh!")
+		return nil
+	}
+
+	// bail on any other err
+	return err
+}
