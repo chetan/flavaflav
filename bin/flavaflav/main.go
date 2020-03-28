@@ -72,9 +72,12 @@ func main() {
 	rpassword := viper.GetString("reddit_password")
 	rsubreddit := viper.GetString("reddit_subreddit")
 	rchannel := viper.GetString("reddit_channel")
+	raccess := viper.GetString("reddit_access_token")
+	rrefresh := viper.GetString("reddit_refresh_token")
+
 	if rusername != "" && rpassword != "" && rsubreddit != "" {
 		fmt.Println("enabling cloneit plugin")
-		cloneit.Enable(rclientid, rclientsecret, rusername, rpassword, rsubreddit, rchannel)
+		cloneit.Enable(rclientid, rclientsecret, rusername, rpassword, rsubreddit, rchannel, raccess, rrefresh)
 	}
 
 	server := viper.GetString("server")

@@ -1,16 +1,14 @@
 package cloneit
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
 
-	"github.com/jzelinskie/geddit"
+	"github.com/allonsy/redditoauth"
 	"github.com/pkg/errors"
 )
 
@@ -23,6 +21,8 @@ type config struct {
 	password     string
 	subreddit    string
 	channel      string
+	access       string
+	refresh      string
 }
 
 type Link struct {
@@ -30,6 +30,39 @@ type Link struct {
 	Title   string
 	Author  string
 	Channel string
+}
+
+// Copyright 2012 Jimmy Zelinskie. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+//
+// Submission represents an individual post from the perspective
+// of a subreddit. Remember to check for nil pointers before
+// using any pointer fields.
+type Submission struct {
+	Author        string  `json:"author"`
+	Title         string  `json:"title"`
+	URL           string  `json:"url"`
+	Domain        string  `json:"domain"`
+	Subreddit     string  `json:"subreddit"`
+	SubredditID   string  `json:"subreddit_id"`
+	FullID        string  `json:"name"`
+	ID            string  `json:"id"`
+	Permalink     string  `json:"permalink"`
+	Selftext      string  `json:"selftext"`
+	SelftextHTML  string  `json:"selftext_html"`
+	ThumbnailURL  string  `json:"thumbnail"`
+	DateCreated   float64 `json:"created_utc"`
+	NumComments   int     `json:"num_comments"`
+	Score         int     `json:"score"`
+	Ups           int     `json:"ups"`
+	Downs         int     `json:"downs"`
+	IsNSFW        bool    `json:"over_18"`
+	IsSelf        bool    `json:"is_self"`
+	WasClicked    bool    `json:"clicked"`
+	IsSaved       bool    `json:"saved"`
+	BannedBy      *string `json:"banned_by"`
+	LinkFlairText string  `json:"link_flair_text"`
 }
 
 var (
@@ -40,8 +73,6 @@ var (
 	errs         = 0
 )
 
-var session *geddit.OAuthSession
-
 func AddLink(link *Link) {
 	if enabled && link.Channel == pluginConfig.channel {
 		go postLink(link) // submit in background
@@ -49,57 +80,34 @@ func AddLink(link *Link) {
 }
 
 // Enable the plugin
-func Enable(clientID, clientSecret, user string, pass string, sub string, channel string) {
-	pluginConfig = &config{clientID, clientSecret, user, pass, sub, channel}
-	sess, err := createSession()
-	if err != nil {
-		fmt.Println("cloneit: err creating initial session: ", err)
-		return
+func Enable(clientID, clientSecret, user string, pass string, sub string, channel string, access string, refresh string) {
+	pluginConfig = &config{clientID, clientSecret, user, pass, sub, channel, access, refresh}
+
+	redditoauth.SetClientID(clientID)
+	redditoauth.SetClientSecret(clientSecret)
+	redditoauth.SetUserAgent("flavaflav v1")
+
+	if refresh == "" {
+		fmt.Println("enabling reddit plugin for the first time. trying to oauth handshake....")
+		scopes := strings.Join([]string{"identity", "flair", "modflair", "modposts", "mysubreddits", "submit"}, ",")
+		a, r, err := redditoauth.PerformHandshake("http://localhost", []string{scopes}, true)
+		if err != nil {
+			panic("failed to handshake with reddit")
+		}
+		fmt.Println("reddit handshake success!")
+		fmt.Println("reddit_access_token:", a)
+		fmt.Println("reddit_refresh_token:", r)
+		fmt.Println("Store these tokens in ~/.flavaflav.yml")
+		os.Exit(0)
 	}
-	session = sess
+
+	redditoauth.SetAccessToken(access)
+	redditoauth.SetRefreshToken(refresh)
+
 	enabled = true
 }
 
-func createSession() (*geddit.OAuthSession, error) {
-	if errs > 2 {
-		// give up
-		return nil, errors.New("too many errors, giving up creating session")
-	}
-
-	sess, err := geddit.NewOAuthSession(
-		pluginConfig.clientID,
-		pluginConfig.clientSecret,
-		"flavaflav v1",
-		"http://127.0.0.1/",
-	)
-
-	err = sess.LoginAuth(pluginConfig.username, pluginConfig.password)
-	if err != nil {
-		fmt.Println("error logging in:", err)
-	}
-
-	if err != nil {
-		// retry until limit
-		fmt.Println("error creating session:", err)
-		errs++
-		return createSession()
-	}
-
-	errs = 0
-	return sess, nil
-}
-
 func postLink(link *Link) {
-	if session == nil {
-		fmt.Println("reddit session is nil, not posting")
-		return
-	}
-
-	if errs > 2 {
-		session = nil
-		fmt.Println("too many errors, giving up submit")
-	}
-
 	// cleanup incoming
 	link.Author = cleanNick(link.Author)
 
@@ -116,21 +124,9 @@ func postLink(link *Link) {
 		fmt.Printf("failed to approve submission: %s\n%#v\n", err, submission)
 		return
 	}
-
-	if err != nil {
-		sess, err := createSession()
-		if err != nil {
-			session = nil
-			fmt.Println("too many errors, giving up submit")
-			return
-		}
-		errs++
-		session = sess
-		postLink(link)
-	}
 }
 
-func approve(submission *geddit.Submission) error {
+func approve(submission *Submission) error {
 	v := url.Values{
 		"id": {submission.FullID},
 	}
@@ -141,7 +137,8 @@ func approve(submission *geddit.Submission) error {
 		}
 	}
 
-	err := postBody("https://oauth.reddit.com/api/approve", v, &generic{})
+	body := strings.NewReader(v.Encode())
+	err := redditoauth.MakeApiReq("POST", "https://oauth.reddit.com/api/approve", body, &generic{})
 	if err != nil {
 		return err
 	}
@@ -154,7 +151,7 @@ func cleanNick(nick string) string {
 	return cleanNickRE.ReplaceAllString(nick, "")
 }
 
-func submit(link *Link, subreddit string) (*geddit.Submission, error) {
+func submit(link *Link, subreddit string) (*Submission, error) {
 	// Build form for POST request.
 	v := url.Values{
 		"title":       {fmt.Sprintf("<%s> %s", link.Author, link.Title)},
@@ -172,12 +169,13 @@ func submit(link *Link, subreddit string) (*geddit.Submission, error) {
 			Errors  [][]string
 			Message string `json:"message"`
 			Error   string `json:"error"`
-			Data    geddit.Submission
+			Data    Submission
 		}
 	}
 	submit := &submission{}
 
-	err := postBody("https://oauth.reddit.com/api/submit", v, submit)
+	body := strings.NewReader(v.Encode())
+	err := redditoauth.MakeApiReq("POST", "https://oauth.reddit.com/api/submit", body, submit)
 	if err != nil {
 		return nil, err
 	}
@@ -187,41 +185,4 @@ func submit(link *Link, subreddit string) (*geddit.Submission, error) {
 
 	// TODO check s.Errors and do something useful?
 	return &submit.Json.Data, nil
-}
-
-func postBody(link string, form url.Values, d interface{}) error {
-	req, err := http.NewRequest("POST", link, strings.NewReader(form.Encode()))
-	if err != nil {
-		return err
-	}
-
-	// This is needed to avoid rate limits
-	//req.Header.Set("User-Agent", o.UserAgent)
-
-	// POST form provided
-	req.PostForm = form
-
-	if session.Client == nil {
-		return errors.New("the OAuth Session lacks HTTP client! Use func (o OAuthSession) LoginAuth() to make one")
-	}
-
-	resp, err := session.Client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	// The caller may want JSON decoded, or this could just be an update/delete request.
-	if d != nil {
-		err = json.Unmarshal(body, d)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
