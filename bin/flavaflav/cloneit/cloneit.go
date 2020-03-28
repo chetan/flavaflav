@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/allonsy/redditoauth"
+	"github.com/chetan/flavaflav/reddit"
 	"github.com/pkg/errors"
 )
 
@@ -26,10 +26,9 @@ type config struct {
 }
 
 type Link struct {
-	Url     string
-	Title   string
-	Author  string
-	Channel string
+	Url    string
+	Title  string
+	Author string
 }
 
 // Copyright 2012 Jimmy Zelinskie. All rights reserved.
@@ -73,8 +72,8 @@ var (
 	errs         = 0
 )
 
-func AddLink(link *Link) {
-	if enabled && link.Channel == pluginConfig.channel {
+func AddLink(link *Link, channel string) {
+	if enabled && channel == pluginConfig.channel {
 		go postLink(link) // submit in background
 	}
 }
@@ -83,14 +82,14 @@ func AddLink(link *Link) {
 func Enable(clientID, clientSecret, user string, pass string, sub string, channel string, access string, refresh string) {
 	pluginConfig = &config{clientID, clientSecret, user, pass, sub, channel, access, refresh}
 
-	redditoauth.SetClientID(clientID)
-	redditoauth.SetClientSecret(clientSecret)
-	redditoauth.SetUserAgent("flavaflav v1")
+	reddit.SetClientID(clientID)
+	reddit.SetClientSecret(clientSecret)
+	reddit.SetUserAgent("flavaflav v1")
 
 	if refresh == "" {
 		fmt.Println("enabling reddit plugin for the first time. trying to oauth handshake....")
 		scopes := strings.Join([]string{"identity", "flair", "modflair", "modposts", "mysubreddits", "submit"}, ",")
-		a, r, err := redditoauth.PerformHandshake("http://localhost", []string{scopes}, true)
+		a, r, err := reddit.PerformHandshake("http://localhost", []string{scopes}, true)
 		if err != nil {
 			panic("failed to handshake with reddit")
 		}
@@ -101,8 +100,14 @@ func Enable(clientID, clientSecret, user string, pass string, sub string, channe
 		os.Exit(0)
 	}
 
-	redditoauth.SetAccessToken(access)
-	redditoauth.SetRefreshToken(refresh)
+	reddit.SetAccessToken(access)
+	reddit.SetRefreshToken(refresh)
+
+	err := reddit.RefreshCreds()
+	if err != nil {
+		fmt.Println("error refreshing creds: ", err)
+		os.Exit(1)
+	}
 
 	enabled = true
 }
@@ -138,7 +143,7 @@ func approve(submission *Submission) error {
 	}
 
 	body := strings.NewReader(v.Encode())
-	err := redditoauth.MakeApiReq("POST", "https://oauth.reddit.com/api/approve", body, &generic{})
+	err := reddit.MakeApiReq("POST", "https://oauth.reddit.com/api/approve", body, &generic{})
 	if err != nil {
 		return err
 	}
@@ -175,7 +180,7 @@ func submit(link *Link, subreddit string) (*Submission, error) {
 	submit := &submission{}
 
 	body := strings.NewReader(v.Encode())
-	err := redditoauth.MakeApiReq("POST", "https://oauth.reddit.com/api/submit", body, submit)
+	err := reddit.MakeApiReq("POST", "https://oauth.reddit.com/api/submit", body, submit)
 	if err != nil {
 		return nil, err
 	}

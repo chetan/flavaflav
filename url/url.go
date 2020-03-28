@@ -97,11 +97,10 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 
 	// Send to cloneit
 	cloneit.AddLink(&cloneit.Link{
-		Url:     URL,
-		Title:   title,
-		Channel: cmd.Channel,
-		Author:  cmd.User.Nick,
-	})
+		Url:    URL,
+		Title:  title,
+		Author: cmd.User.Nick,
+	}, cmd.Channel)
 
 	if util.IsYoutube(URL) {
 		// skip youtube links but still post the URL to cloneit

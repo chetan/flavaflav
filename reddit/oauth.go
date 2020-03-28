@@ -153,7 +153,7 @@ func PerformHandshake(callback string, scopes []string, perm bool) (string, stri
 }
 
 //exchanges refresh token for access token
-func refreshCreds() error {
+func RefreshCreds() error {
 	err := validateCreds()
 	if err != nil {
 		return err

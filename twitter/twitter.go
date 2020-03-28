@@ -100,11 +100,10 @@ func handleTweet(cmd *bot.PassiveCmd) (string, error) {
 		}
 
 		cloneit.AddLink(&cloneit.Link{
-			Url:     URL,
-			Title:   tweet.TextBody,
-			Channel: cmd.Channel,
-			Author:  cmd.User.Nick,
-		})
+			Url:    URL,
+			Title:  tweet.TextBody,
+			Author: cmd.User.Nick,
+		}, cmd.Channel)
 
 		out := tweet.String()
 
