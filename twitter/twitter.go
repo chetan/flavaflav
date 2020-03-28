@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/chetan/flavaflav/bin/flavaflav/cloneit"
+	"github.com/chetan/flavaflav/reddit"
 
 	uri "net/url"
 
@@ -99,7 +100,7 @@ func handleTweet(cmd *bot.PassiveCmd) (string, error) {
 			return "", err
 		}
 
-		cloneit.AddLink(&cloneit.Link{
+		cloneit.AddLink(&reddit.Link{
 			Url:    URL,
 			Title:  tweet.TextBody,
 			Author: cmd.User.Nick,

@@ -11,6 +11,7 @@ import (
 	"code.cloudfoundry.org/bytefmt"
 
 	"github.com/chetan/flavaflav/bin/flavaflav/cloneit"
+	"github.com/chetan/flavaflav/reddit"
 	"github.com/chetan/flavaflav/util"
 	"github.com/go-chat-bot/bot"
 )
@@ -96,7 +97,7 @@ func urlTitle(cmd *bot.PassiveCmd) (string, error) {
 	}
 
 	// Send to cloneit
-	cloneit.AddLink(&cloneit.Link{
+	cloneit.AddLink(&reddit.Link{
 		Url:    URL,
 		Title:  title,
 		Author: cmd.User.Nick,
