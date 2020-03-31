@@ -203,7 +203,8 @@ func validateCreds() error {
 	return nil
 }
 
-//makes an api request to reddit.
+// MakeApiReq makes an api request to reddit.
+//
 //The first argument is the http method (GET, POST, PATCH, etc...)
 //The second argument is the url string with all parameters (e.g. https://oauth.reddit.com/api/v1/me).
 //The third argument is an optional body to the request.
@@ -240,8 +241,8 @@ func MakeApiReq(method, urlstr string, body io.Reader, result interface{}) error
 }
 
 // MakeApiReqWithRetry automatically retries the given request *one* time
-func MakeApiReqWithRetry(method, urlstr string, body io.Reader, result interface{}) error {
-	err := MakeApiReq(method, urlstr, body, result)
+func MakeApiReqWithRetry(method, urlstr string, body string, result interface{}) error {
+	err := MakeApiReq(method, urlstr, strings.NewReader(body), result)
 	if err == nil {
 		return nil
 	}
@@ -256,7 +257,7 @@ func MakeApiReqWithRetry(method, urlstr string, body io.Reader, result interface
 		}
 		// successful refresh, try again
 		fmt.Println("[reddit] refresh successful, trying request again")
-		err := MakeApiReq(method, urlstr, body, result)
+		err := MakeApiReq(method, urlstr, strings.NewReader(body), result)
 		if err != nil {
 			fmt.Println("[reddit] request still failed:", err)
 			return err
@@ -267,4 +268,10 @@ func MakeApiReqWithRetry(method, urlstr string, body io.Reader, result interface
 
 	// bail on any other err
 	return err
+}
+
+// dump obj to json string without err check
+func dump(obj interface{}) string {
+	b, _ := json.Marshal(obj)
+	return string(b)
 }
