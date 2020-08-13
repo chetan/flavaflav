@@ -28,7 +28,13 @@ var (
 	pluginConfig  = &config{}
 )
 
-const twitterID = 25073877 // realDonaldTrump
+var twitterIDs = []int64{
+	25073877, // realDonaldTrump
+	939091,   // JoeBiden
+	30354991, // KamalaHarris
+}
+
+var twitterIDmap map[int64]int
 
 func Enable(consumerKey string, consumerSecret string, accessToken string, accessSecret string, channels []string) {
 	pluginConfig = &config{consumerKey, consumerSecret, accessToken, accessSecret, channels}
@@ -49,8 +55,15 @@ func startPlugin() {
 	httpClient := config.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 
+	twitterIDmap = make(map[int64]int)
+	var followIDs []string
+	for _, id := range twitterIDs {
+		twitterIDmap[id] = 1
+		followIDs = append(followIDs, fmt.Sprintf("%d", id))
+	}
+
 	params := &twitter.StreamFilterParams{
-		Follow:        []string{fmt.Sprintf("%d", twitterID)},
+		Follow:        followIDs,
 		StallWarnings: twitter.Bool(true),
 	}
 	stream, err := client.Streams.Filter(params)
@@ -61,17 +74,19 @@ func startPlugin() {
 
 	demux := twitter.NewSwitchDemux()
 	demux.Tweet = func(tweet *twitter.Tweet) {
-		if tweet.User.ID != twitterID {
+		if !isFollowing(tweet.User.ID) {
 			return // ignore
 		}
+
+		fmt.Printf("new tweet: %#v\n", tweet)
+
 		tweetURL := fmt.Sprintf("https://twitter.com/%s/status/%s", tweet.User.ScreenName, tweet.IDStr)
-		fmt.Println(tweetURL)
-		// twit := formatTweet(tweet)
 		fullTweet, err := twitter_plugin.FetchTweet(tweetURL)
 		if err != nil {
 			fmt.Println("error fetching full tweet: ", err)
 			return
 		}
+		fullTweet.AuthorID = tweet.User.ID
 		twit := fullTweet.String()
 
 		// append short url
@@ -82,7 +97,7 @@ func startPlugin() {
 			twit += " // " + tweetURL // just use long one on err
 		}
 
-		fmt.Println(twit)
+		// fmt.Println(twit)
 
 		// add new tweet to our buffer
 		mtx.Lock()
@@ -96,6 +111,10 @@ func startPlugin() {
 		fmt.Println("uh oh, demux exited the loop... restarting")
 		startPlugin()
 	}()
+}
+
+func isFollowing(id int64) bool {
+	return twitterIDmap[id] == 1
 }
 
 func formatTweet(tweet *twitter.Tweet) string {

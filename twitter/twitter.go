@@ -32,11 +32,12 @@ type Tweet struct {
 	Version      string
 
 	AuthorName   string `json:"author_name"`
+	AuthorHandle string
+	AuthorID     int64
 	HTML         string
 	Text         string
 	TextBody     string
 	TextDate     string
-	AuthorHandle string
 }
 
 func (t Tweet) String() string {
