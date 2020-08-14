@@ -50,11 +50,14 @@ func Enable(consumerKey string, consumerSecret string, accessToken string, acces
 
 func startPlugin() {
 	fmt.Println("starting trumpykins tracker")
+
+	// client setup
 	config := oauth1.NewConfig(pluginConfig.consumerKey, pluginConfig.consumerSecret)
 	token := oauth1.NewToken(pluginConfig.accessToken, pluginConfig.accessSecret)
 	httpClient := config.Client(oauth1.NoContext, token)
 	client := twitter.NewClient(httpClient)
 
+	// create ID params for listening
 	twitterIDmap = make(map[int64]int)
 	var followIDs []string
 	for _, id := range twitterIDs {
@@ -62,6 +65,7 @@ func startPlugin() {
 		followIDs = append(followIDs, fmt.Sprintf("%d", id))
 	}
 
+	// create stream
 	params := &twitter.StreamFilterParams{
 		Follow:        followIDs,
 		StallWarnings: twitter.Bool(true),
@@ -72,50 +76,57 @@ func startPlugin() {
 		return
 	}
 
+	// setup listener
 	demux := twitter.NewSwitchDemux()
-	demux.Tweet = func(tweet *twitter.Tweet) {
-		if !isFollowing(tweet.User.ID) {
-			return // ignore
-		}
+	demux.Tweet = handleTweet
 
-		fmt.Printf("new tweet: %#v\n", tweet)
-
-		tweetURL := fmt.Sprintf("https://twitter.com/%s/status/%s", tweet.User.ScreenName, tweet.IDStr)
-		fullTweet, err := twitter_plugin.FetchTweet(tweetURL)
-		if err != nil {
-			fmt.Println("error fetching full tweet: ", err)
-			return
-		}
-		fullTweet.AuthorID = tweet.User.ID
-		twit := fullTweet.String()
-
-		// add RT prefix if retweet
-		if tweet.RetweetedStatus != nil {
-			twit = fmt.Sprintf("<%s> RT %s", tweet.User.ScreenName, twit)
-		}
-
-		// append short url
-		shortURL, err := url.ShortenURL(tweetURL)
-		if err == nil {
-			twit += " // " + shortURL
-		} else {
-			twit += " // " + tweetURL // just use long one on err
-		}
-
-		// fmt.Println(twit)
-
-		// add new tweet to our buffer
-		mtx.Lock()
-		defer mtx.Unlock()
-		pendingTweets = append(pendingTweets, twit)
-	}
-
+	// start runloop
 	go func() {
 		defer stream.Stop()
 		demux.HandleChan(stream.Messages) // runs forever
 		fmt.Println("uh oh, demux exited the loop... restarting")
 		startPlugin()
 	}()
+}
+
+/**
+ * Handle incoming tweet from firehose stream created in startPlugin.
+ */
+func handleTweet(tweet *twitter.Tweet) {
+	if !isFollowing(tweet.User.ID) {
+		return // ignore
+	}
+
+	fmt.Printf("new tweet: %#v\n", tweet)
+
+	tweetURL := fmt.Sprintf("https://twitter.com/%s/status/%s", tweet.User.ScreenName, tweet.IDStr)
+	fullTweet, err := twitter_plugin.FetchTweet(tweetURL)
+	if err != nil {
+		fmt.Println("error fetching full tweet: ", err)
+		return
+	}
+	fullTweet.AuthorID = tweet.User.ID
+	twit := fullTweet.String()
+
+	// add RT prefix if retweet
+	if tweet.RetweetedStatus != nil {
+		twit = fmt.Sprintf("<%s> RT %s", tweet.User.ScreenName, twit)
+	}
+
+	// append short url
+	shortURL, err := url.ShortenURL(tweetURL)
+	if err == nil {
+		twit += " // " + shortURL
+	} else {
+		twit += " // " + tweetURL // just use long one on err
+	}
+
+	// fmt.Println(twit)
+
+	// add new tweet to our buffer
+	mtx.Lock()
+	defer mtx.Unlock()
+	pendingTweets = append(pendingTweets, twit)
 }
 
 func isFollowing(id int64) bool {
