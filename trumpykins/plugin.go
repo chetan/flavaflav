@@ -89,6 +89,11 @@ func startPlugin() {
 		fullTweet.AuthorID = tweet.User.ID
 		twit := fullTweet.String()
 
+		// add RT prefix if retweet
+		if tweet.RetweetedStatus != nil {
+			twit = fmt.Sprintf("<%s> RT %s", tweet.User.ScreenName, twit)
+		}
+
 		// append short url
 		shortURL, err := url.ShortenURL(tweetURL)
 		if err == nil {
