@@ -110,7 +110,7 @@ func handleTweet(tweet *twitter.Tweet) {
 
 	// add RT prefix if retweet
 	if tweet.RetweetedStatus != nil {
-		twit = fmt.Sprintf("<%s> RT %s", tweet.User.ScreenName, twit)
+		twit = fmt.Sprintf("<@%s> RT %s", tweet.User.ScreenName, twit)
 	}
 
 	// append short url
