@@ -96,7 +96,7 @@ func buildurl(scopes []string, perm bool) (string, error) {
 	params.Add("state", "redditoauth")
 	params.Add("redirect_uri", "http://localhost")
 
-	return "https://https://www.reddit.com/api/v1/authorize?" + params.Encode(), nil
+	return "https://www.reddit.com/api/v1/authorize?" + params.Encode(), nil
 }
 
 //performs an oauth handshake. Returns 3 values.
