@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/chetan/flavaflav/bin/flavaflav/cloneit"
+	"github.com/chetan/flavaflav/covid"
 	"github.com/chetan/flavaflav/trumpykins"
 
 	"github.com/spf13/viper"
@@ -46,6 +47,9 @@ func main() {
 
 	util.IgnoreNicks = viper.GetStringSlice("ignore_nicks")
 	util.IgnorePatterns = viper.GetStringSlice("ignore_patterns")
+
+	// covid plugin
+	covid.Enable()
 
 	// btc plugin
 	btcChannels := viper.GetStringSlice("btc_channels")
