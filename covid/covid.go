@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chat-bot/bot"
+	colly "github.com/gocolly/colly/v2"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -18,12 +19,39 @@ var (
 
 // Enable the covid command plugin
 func Enable() {
-	fmt.Println("adding covid command")
 	bot.RegisterCommand("covid", "Get current covid stats for US", "", getCovidStats)
 }
 
-func getCovidStats(cmd *bot.Cmd) (string, error) {
+func fetchCovidStatus(results chan string) error {
+	c := colly.NewCollector(colly.AllowedDomains("www.worldometers.info"))
+	c.OnHTML("table#usa_table_countries_today", func(table *colly.HTMLElement) {
+		tr := table.DOM.Find("tbody tr:first-of-type")
+		tds := tr.Children()
+		newCases := tds.Eq(3).Text()
+		newDeaths := tds.Eq(5).Text()
+		results <- fmt.Sprintf("today: new cases = %s; new deaths = %s", newCases, newDeaths)
+	})
+	c.OnHTML("table#usa_table_countries_yesterday", func(table *colly.HTMLElement) {
+		tr := table.DOM.Find("tbody tr:first-of-type")
+		tds := tr.Children()
+		newCases := tds.Eq(3).Text()
+		newDeaths := tds.Eq(5).Text()
+		results <- fmt.Sprintf("yesterday: new cases = %s; new deaths = %s", newCases, newDeaths)
+	})
+	return c.Visit("https://www.worldometers.info/coronavirus/country/us/")
+}
 
+func getCovidStats(cmd *bot.Cmd) (string, error) {
+	resultsChan := make(chan string, 1)
+	go fetchCovidStatus(resultsChan)
+
+	out := <-resultsChan
+	out += "\n" + <-resultsChan
+	return out, nil
+
+}
+
+func fetchStatusApi() (string, error) {
 	b, err := fetch(currentStatsURL)
 	if err != nil {
 		return "", err
